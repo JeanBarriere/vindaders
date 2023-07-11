@@ -1,10 +1,10 @@
 module main
 
 import audio as au
+import app
 
 fn main() {
 	mut audio := au.Player.new()
-	audio.init()
 
 	audio.add('explode', 'assets/explode.wav')
 	audio.add('lose', 'assets/lose.wav')
@@ -14,6 +14,8 @@ fn main() {
 	audio.add('win', 'assets/win.wav')
 	audio.play('startup')
 
-	// cleanup
-	audio.stop()
+	// Terminal
+	mut game := app.create('V Invaders', audio)
+
+	game.start() or { eprintln('error while rendering ${err}') }
 }
