@@ -6,6 +6,7 @@ import render
 import terminal
 import events
 import time
+import player
 
 fn main() {
 	mut audio := au.Player.new()
@@ -45,6 +46,7 @@ fn main() {
 	}(channel)
 
 	// Game loop
+	mut p := player.new()
 	gameloop: for {
 		// Per-frame init
 		mut curr_frame := frame.new_frame()
@@ -53,6 +55,12 @@ fn main() {
 		for event in events.poll() {
 			if event is events.KeyboardEvent {
 				match event.code {
+					.left {
+						p.move_left()
+					}
+					.right {
+						p.move_right()
+					}
 					.q, .escape {
 						audio.play('lose')
 						break gameloop
@@ -63,6 +71,7 @@ fn main() {
 		}
 
 		// Draw & render
+		p.draw(mut &curr_frame)
 		channel <- curr_frame
 		time.sleep(1 * time.millisecond)
 	}

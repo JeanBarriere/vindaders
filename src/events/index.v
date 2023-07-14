@@ -19,11 +19,12 @@ pub fn event_from_buffer(buf string) &Event {
 
 [params]
 pub struct PollOptions {
-	fps int = 30
+	timeout time.Duration = time.Duration(0)
 }
 
+[noinit]
 pub struct PollIterator {
-	fps int
+	timeout time.Duration
 mut:
 	halt bool
 }
@@ -37,20 +38,14 @@ fn (mut iter PollIterator) next() ?&Event {
 
 pub fn poll(options PollOptions) PollIterator {
 	return PollIterator{
-		fps: options.fps
+		timeout: options.timeout
 	}
 }
 
-fn (iter PollIterator) run() &Event {
+fn (iter PollIterator) run() ?&Event {
 	mut s := ''
-	frame_time := 1_000_000 / iter.fps
-	mut sw := time.new_stopwatch(auto_start: false)
-	mut sleep_len := 0
+	mut sw := time.new_stopwatch(auto_start: true)
 	for {
-		if sleep_len > 0 {
-			time.sleep(sleep_len * time.microsecond)
-		}
-		sw.restart()
 		unsafe {
 			buf := malloc_noscan(25)
 			len := C.read(C.STDIN_FILENO, buf, 24)
@@ -58,10 +53,11 @@ fn (iter PollIterator) run() &Event {
 			s = tos(buf, len)
 		}
 		if s.len > 0 {
-			event := event_from_buffer(s)
-			return event
+			return event_from_buffer(s)
 		}
-		sleep_len = frame_time - int(sw.elapsed().microseconds())
+		if sw.elapsed().microseconds() > iter.timeout.microseconds() {
+			break
+		}
 	}
-	return &Event(UnknownEvent{s})
+	return none
 }

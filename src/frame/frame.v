@@ -1,6 +1,6 @@
 module frame
 
-const (
+pub const (
 	num_rows = 20
 	num_cols = 40
 )
@@ -19,4 +19,8 @@ pub fn new_frame() Frame {
 	}
 
 	return self
+}
+
+pub interface Drawable {
+	draw(mut Frame)
 }
