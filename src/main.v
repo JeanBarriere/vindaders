@@ -47,9 +47,12 @@ fn main() {
 
 	// Game loop
 	mut p := player.new()
+	mut instant := time.new_stopwatch()
 	gameloop: for {
 		// Per-frame init
 		mut curr_frame := frame.new_frame()
+		delta := instant.elapsed()
+		instant.restart()
 
 		// Input
 		for event in events.poll() {
@@ -61,6 +64,11 @@ fn main() {
 					.right {
 						p.move_right()
 					}
+					.space {
+						if p.shoot() {
+							audio.play('pew')
+						}
+					}
 					.q, .escape {
 						audio.play('lose')
 						break gameloop
@@ -69,6 +77,9 @@ fn main() {
 				}
 			}
 		}
+
+		// Updates
+		p.update(delta)
 
 		// Draw & render
 		p.draw(mut &curr_frame)
