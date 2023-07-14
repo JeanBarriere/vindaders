@@ -5,7 +5,6 @@ import os
 struct Sound {
 mut:
 	samples []f32 [required]
-	pos     int
 }
 
 pub fn Sound.from_wav(name string, fpath string) Sound {
@@ -36,7 +35,6 @@ pub fn (s Sound) is_valid() bool {
 
 pub fn (mut s Sound) free() {
 	s.samples = []f32{}
-	s.pos = 0
 }
 
 // The read_wav_file_samples function below is based on the following sources:

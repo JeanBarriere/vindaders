@@ -1,7 +1,11 @@
 module main
 
 import audio as au
-import app
+import frame
+import render
+import terminal
+import events
+import time
 
 fn main() {
 	mut audio := au.Player.new()
@@ -15,7 +19,59 @@ fn main() {
 	audio.play('startup')
 
 	// Terminal
-	mut game := app.create('V Invaders', audio)
+	stdout := terminal.stdout()
+	terminal.enable_raw_mode()
+	stdout.execute(terminal.enter_alternate_screen)
+	stdout.execute(terminal.hide)
 
-	game.start() or { eprintln('error while rendering ${err}') }
+	// Render in a separate thread
+	channel := chan frame.Frame{cap: 1}
+
+	render_handle := spawn fn (channel chan frame.Frame) {
+		mut last_frame := frame.new_frame()
+		render.render(last_frame, last_frame, true)
+		for {
+			if select {
+				curr_frame := <-channel {
+					render.render(last_frame, curr_frame, false)
+					last_frame = curr_frame
+				}
+			} {
+				continue
+			} else {
+				break
+			}
+		}
+	}(channel)
+
+	// Game loop
+	gameloop: for {
+		// Per-frame init
+		mut curr_frame := frame.new_frame()
+
+		// Input
+		for event in events.poll() {
+			if event is events.KeyboardEvent {
+				match event.code {
+					.q, .escape {
+						audio.play('lose')
+						break gameloop
+					}
+					else {}
+				}
+			}
+		}
+
+		// Draw & render
+		channel <- curr_frame
+		time.sleep(1 * time.millisecond)
+	}
+
+	// Cleanup
+	channel.close()
+	render_handle.wait()
+	audio.wait()
+	stdout.execute(terminal.show)
+	stdout.execute(terminal.leave_alternate_screen)
+	terminal.disable_raw_mode()
 }
