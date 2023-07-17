@@ -88,6 +88,9 @@ fn main() {
 		if i.update(delta) {
 			audio.play('move')
 		}
+		if p.detect_hits(mut i) {
+			audio.play('explode')
+		}
 
 		// Draw & render
 		for drawable in drawables {
@@ -95,6 +98,16 @@ fn main() {
 		}
 		channel <- curr_frame
 		time.sleep(1 * time.millisecond)
+
+		// Win or lose?
+		if i.all_killed() {
+			audio.play('win')
+			break gameloop
+		}
+		if i.reached_bottom() {
+			audio.play('lose')
+			break gameloop
+		}
 	}
 
 	// Cleanup

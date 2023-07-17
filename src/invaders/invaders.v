@@ -1,5 +1,6 @@
 module invaders
 
+import arrays
 import frame
 import timer
 import time
@@ -22,7 +23,7 @@ pub mut:
 }
 
 [noinit]
-struct Invaders {
+pub struct Invaders {
 mut:
 	move_timer timer.Timer
 	direction  Direction
@@ -85,6 +86,26 @@ pub fn (mut self Invaders) update(delta time.Duration) bool {
 				invader.x = usize(int(invader.x) + self.direction.value())
 			}
 		}
+		return true
+	}
+	return false
+}
+
+pub fn (self Invaders) all_killed() bool {
+	return self.army.len == 0
+}
+
+pub fn (self Invaders) reached_bottom() bool {
+	return self.army.any(it.y >= frame.num_rows - 1)
+}
+
+pub fn (mut self Invaders) kill_invader_at(x usize, y usize) bool {
+	idx := arrays.index_of_first(self.army, fn [x, y] (idx int, it Invader) bool {
+		return it.x == x && it.y == y
+	})
+
+	if idx > -1 {
+		self.army.delete(idx)
 		return true
 	}
 	return false

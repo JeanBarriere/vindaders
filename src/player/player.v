@@ -3,6 +3,7 @@ module player
 import frame
 import shot
 import time
+import invaders
 
 [noinit]
 pub struct Player {
@@ -46,6 +47,19 @@ pub fn (mut player Player) update(delta time.Duration) {
 	player.shots = player.shots.filter(fn (s shot.Shot) bool {
 		return !s.dead()
 	})
+}
+
+pub fn (mut player Player) detect_hits(mut i invaders.Invaders) bool {
+	mut hit_something := false
+	for mut shot in player.shots {
+		if !shot.exploding {
+			if i.kill_invader_at(shot.x, shot.y) {
+				hit_something = true
+				shot.explode()
+			}
+		}
+	}
+	return hit_something
 }
 
 // implement Drawable
