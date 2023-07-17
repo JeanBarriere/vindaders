@@ -49,7 +49,7 @@ pub fn (mut player Player) update(delta time.Duration) {
 }
 
 // implement Drawable
-pub fn (mut player Player) draw(mut f frame.Frame) {
+pub fn (player Player) draw(mut f frame.Frame) {
 	f[player.x][player.y] = 'A'
 	for s in player.shots {
 		s.draw(mut f)

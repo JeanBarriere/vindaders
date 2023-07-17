@@ -7,6 +7,7 @@ import terminal
 import events
 import time
 import player
+import invaders
 
 fn main() {
 	mut audio := au.Player.new()
@@ -48,6 +49,10 @@ fn main() {
 	// Game loop
 	mut p := player.new()
 	mut instant := time.new_stopwatch()
+	mut i := invaders.new()
+	mut drawables := []frame.Drawable{}
+	drawables << p
+	drawables << i
 	gameloop: for {
 		// Per-frame init
 		mut curr_frame := frame.new_frame()
@@ -80,9 +85,14 @@ fn main() {
 
 		// Updates
 		p.update(delta)
+		if i.update(delta) {
+			audio.play('move')
+		}
 
 		// Draw & render
-		p.draw(mut &curr_frame)
+		for drawable in drawables {
+			drawable.draw(mut curr_frame)
+		}
 		channel <- curr_frame
 		time.sleep(1 * time.millisecond)
 	}
